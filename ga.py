@@ -47,21 +47,6 @@ class GeneticAlgorithm():
     def append(self, thing):
         self.population.append(thing)
 
-    def evolve(self, evl):
-        timestamp = time()
-
-        s = self._selection(evl)
-
-        self.population = self._crossmut(s)
-
-        if self.verbose:
-            print("Current Population {}, evolution took: {}"
-                  .format(self.population, time() - timestamp))
-
-        self.generation += 1
-
-        return self
-
     def __iter__(self):
         return iter(self.population)
 

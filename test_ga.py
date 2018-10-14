@@ -95,13 +95,13 @@ def test_ga_mlp():
         p.add_layer(1)
         return p
 
-    X = np.array([[ 0, 0 ], [0,1], [1, 0], [1, 1] ])
+    X = np.array([ [0,0], [0,1], [1,0], [1,1] ])
     T_xor = np.array([ (x[0] ^ x[1]) for x in X ])
     
     for i in range(POP_SIZE):
         p = make_genetic_mlp()
         p.train(X, T_xor)
-        genetics.append(make_genetic_mlp())
+        genetics.append(p)
     
     for generation in range(20):
         for p in genetics:
