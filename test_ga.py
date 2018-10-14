@@ -22,6 +22,7 @@ class GeneticMLP(GeneticThing, MLP):
 
     def mutate(self, r_mutate):
         # Add noise to weights. Noise proportional to 0 < r_mutate < 1
+        r_mutate *= 1
         for i in range(len(self.W)):
             w_shape = np.shape(self.W[i])
             self.W[i] = (1-r_mutate) * self.W[i] + r_mutate * self._get_random_weights(w_shape[0], w_shape[1])
@@ -86,7 +87,7 @@ def fitness(T, y):
     return 1.0 / (np.sum(np.power(T - y, 2) + 0.01))
 
 def test_ga_mlp():
-    POP_SIZE = 30
+    POP_SIZE = 1000
     genetics = GeneticAlgorithm()
 
     def make_genetic_mlp():
@@ -100,10 +101,11 @@ def test_ga_mlp():
     
     for i in range(POP_SIZE):
         p = make_genetic_mlp()
-        p.train(X, T_xor, epochs=1000)
+        # if i % 5 == 0:
+        #    p.train(X, T_xor, epochs=5000)
         genetics.append(p)
     
-    for generation in range(20):
+    for generation in range(10000):
         for p in genetics:
             y = p.recall(X)
             p.set_fitness(fitness(T_xor, y))

@@ -99,7 +99,7 @@ class MLP:
             self.update_weights(x1, T)
             iteration += 1
 
-            if (iteration % 100):
+            if iteration % 100 == 0:
                 error = 0.5*np.sum(np.power(T - self.y1, 2))
                 print "Error: " + str(error)
             

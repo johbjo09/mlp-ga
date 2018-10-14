@@ -35,9 +35,9 @@ class GeneticThing():
 
 class GeneticAlgorithm():
     
-    def __init__(self, p_mutation=0.1, p_decendants=0.4):
+    def __init__(self, p_mutation=0.1, p_descendants=0.5):
         self.p_mutation = p_mutation
-        self.p_decendants = p_decendants
+        self.p_descendants = p_descendants
 
         self.apex = None
 
@@ -70,34 +70,40 @@ class GeneticAlgorithm():
         
         p_fitness = lambda i: fitness[i]/max_fitness
 
-        # Rank function: geometric mean
-        f_rank = lambda i: p_fitness(i)* 0.7 +  0.3 * p_distance(i)
+        # Rank function
+        f_rank = lambda i: p_fitness(i)* 0.6 +  0.4 * p_distance(i)
 
         rankings = [ f_rank(i) for i in range(len(self.population)) ]
         
-        i_selections = filter(lambda i: fitness[i] > apex_cutoff, range(len(self.population)))
+        i_apex = filter(lambda i: fitness[i] > apex_cutoff, range(len(self.population)))
+        i_selections = []
         
-        descendants = int(self.p_decendants * len(self.population))
-        while descendants > 0:
+        descendants = int(self.p_descendants * len(self.population))
+        while len(i_selections) <= descendants:
             i = random.randint(0,len(self.population)-1) # range(len(self.population)):
-
-            # The probability that an individual should be in the next population
+            if i in i_selections:
+                continue
+            
+            # The probability that the individual should be in the next generation
             p_selection = rankings[i]
             
             if np.random.rand() < p_selection:
-                print "Generation: {}, p_selection: {:.2f}, fitness: {}, distance: {:.2f}".format(self.generation, p_selection, fitness[i], distances[i])
                 i_selections.append(i)
-                descendants -= 1
+
+        for i in i_apex:
+            print "Generation: {}, fit: {}, dist: {:.2f}, rank: {:.2f} (apex)".format(self.generation, fitness[i], distances[i], rankings[i])
+        for i in i_selections:
+            print "Generation: {}, fit: {}, dist: {:.2f}, rank: {:.2f}"  .format(self.generation, fitness[i], distances[i], rankings[i])
 
         print("Selection: {}".format(time() - timestamp))
-
-        next_generation = []
-
+        
+        next_generation = [ self.population[i] for i in i_apex ]
+    
         while len(next_generation) < len(self.population):
             i1 = random.choice(i_selections)
             i2 = random.choice(i_selections)
-            ancestor1 = self.population[i1]
-            ancestor2 = self.population[i2]
+            ancestor1 = deepcopy(self.population[i1])
+            ancestor2 = deepcopy(self.population[i2])
 
             r_mutation1 = (1 - rankings[i1])
             ancestor1.mutate(r_mutation1)
@@ -105,12 +111,11 @@ class GeneticAlgorithm():
             r_mutation2 = (1 - rankings[i2])
             ancestor2.mutate(r_mutation2)
             
-            descendant = ancestor1.crosswith(ancestor2)
-            descendant.mutate(r_mutation1 * r_mutation2)
+            descendant1 = ancestor1.crosswith(ancestor2)
 
             next_generation.append(ancestor1)
             next_generation.append(ancestor2)
-            next_generation.append(descendant)
+            next_generation.append(descendant1)
 
         self.population = next_generation
         self.generation += 1
