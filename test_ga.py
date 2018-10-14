@@ -83,7 +83,7 @@ class GeneticPerceptron(GeneticThing, Perceptron):
         self.W /= divisor
 
 def fitness(T, y):
-    return np.sum(1.0 - (T - y))
+    return 1.0 / (np.sum(np.power(T - y, 2) + 0.01))
 
 def test_ga_mlp():
     POP_SIZE = 30
@@ -100,7 +100,7 @@ def test_ga_mlp():
     
     for i in range(POP_SIZE):
         p = make_genetic_mlp()
-        p.train(X, T_xor)
+        p.train(X, T_xor, epochs=1000)
         genetics.append(p)
     
     for generation in range(20):

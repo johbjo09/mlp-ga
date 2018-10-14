@@ -90,9 +90,7 @@ class MLP:
             layer -= 1
             self.W[layer] -= self.dW[layer] * self.eta
 
-    def train(self, X, T):
-        epochs = 10000
-
+    def train(self, X, T, epochs=10000):
         x1 = self._add1(X)
         iteration = 0
         error = 1e10
