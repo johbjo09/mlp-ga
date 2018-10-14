@@ -1,5 +1,6 @@
 
 import numpy as np
+import random
 from copy import deepcopy
 from ga import GeneticThing, GeneticAlgorithm
 from perceptron import Perceptron
@@ -9,9 +10,11 @@ from mlp import MLP
 
 class GeneticMLP(GeneticThing, MLP):
 
-    def __init__(self, num_in):
-        MLP.__init__(self, num_in)
+    def __init__(self, num_in, r_mutation=0.4, severity=5, activation="tanh"):
+        MLP.__init__(self, num_in, activation=activation)
         self._fitness = 0
+        self._r_mutation = r_mutation
+        self.severity = severity
 
     @property
     def fitness(self):
@@ -22,16 +25,24 @@ class GeneticMLP(GeneticThing, MLP):
 
     def mutate(self, r_mutate):
         # Add noise to weights. Noise proportional to 0 < r_mutate < 1
-        r_mutate *= 1
         for i in range(len(self.W)):
-            w_shape = np.shape(self.W[i])
-            self.W[i] = (1-r_mutate) * self.W[i] + r_mutate * self._get_random_weights(w_shape[0], w_shape[1])
+            self.W[i] = (1 - self._r_mutation) * self.W[i] + self._r_mutation * self._get_randomization(self.W[i])
+
+    def _get_randomization(self, w):
+        # return (np.random.normal(0, 2, num_in + 1))
+        w_shape = np.shape(w)
+        return (np.random.rand(w_shape[0], w_shape[1]) - 0.5) * self.severity
 
     def crosswith(self, that_p):
-        # TODO: random chromosome crossing
         p = deepcopy(self)
         for i in range(len(self.W)):
-            p.W[i] = p.W[i] * 0.5 + that_p.W[i] * 0.5
+            w_shape = np.shape(p.W[i])
+            mutations = int(self._r_mutation * w_shape[0] * w_shape[1])
+            for j in range(mutations):
+                k = 0 if w_shape[0] == 1 else random.randint(1, w_shape[0] -1)
+                l = 0 if w_shape[1] == 1 else random.randint(1, w_shape[1] -1)
+                p.W[i][k][l] = that_p.W[i][k][l]
+                # p.W[i] = p.W[i] * 0.5 + that_p.W[i] * 0.5
         return p
 
     def distanceto(self, that_p):
@@ -69,9 +80,14 @@ class GeneticPerceptron(GeneticThing, Perceptron):
         self.W = (1-r_mutate) * self.W + r_mutate * self._get_random_weights()
 
     def crosswith(self, that_p):
-        # TODO: random chromosome crossing
         p = deepcopy(self)
-        p.W = p.W * 0.5 + that_p.W * 0.5
+        # p.W = p.W * 0.5 + that_p.W * 0.5
+        mutations = 3
+        for j in range(mutations):
+            w_shape = np.shape(p.W)
+            k = 0 if w_shape[0] == 1 else random.randint(1, w_shape[0] -1)
+            l = 0 if w_shape[1] == 1 else random.randint(1, w_shape[1] -1)
+            p.W[k][l] = that_p.W[k][l]
         return p
 
     def distanceto(self, that_p):
@@ -86,23 +102,42 @@ class GeneticPerceptron(GeneticThing, Perceptron):
 def fitness(T, y):
     return 1.0 / (np.sum(np.power(T - y, 2) + 0.01))
 
-def test_ga_mlp():
-    POP_SIZE = 1000
+def test_ga_gauss():
+    POP_SIZE = 40
     genetics = GeneticAlgorithm()
 
-    def make_genetic_mlp():
-        p = GeneticMLP(2)
-        p.add_layer(2)
+    P_test = np.array([ (12 * np.random.rand(1, 2)[0] - 6) for i in range(0,100) ])
+    P_test = np.transpose(P_test)
+    X_test = P_test[0]
+    Y_test = P_test[1]
+    Z_test = np.reshape(np.exp(-(X_test ** 2+ Y_test **2)/10), (-1,1))
+    P_test = np.transpose(P_test)
+
+    for i in range(POP_SIZE):
+        p = GeneticMLP(2, r_mutation=0.3, activation="sigmoid")
+        p.add_layer(6)
         p.add_layer(1)
-        return p
+        genetics.append(p)
+
+    for generation in range(10000):
+        for p in genetics:
+            y = p.recall(P_test)
+            p.set_fitness(fitness(Z_test, y))
+        genetics.evolve()
+
+def test_ga_xor():
+    POP_SIZE = 50
+    genetics = GeneticAlgorithm()
 
     X = np.array([ [0,0], [0,1], [1,0], [1,1] ])
     T_xor = np.reshape(np.array([ (x[0] ^ x[1]) for x in X ]), (-1,1))
     
     for i in range(POP_SIZE):
-        p = make_genetic_mlp()
-        # if i % 5 == 0:
-        #    p.train(X, T_xor, epochs=5000)
+        p = GeneticMLP(2)
+        p.add_layer(2)
+        p.add_layer(1)
+        if i % 2 == 0:
+            p.train(X, T_xor, epochs=1000)
         genetics.append(p)
     
     for generation in range(10000):
@@ -116,13 +151,14 @@ def test_ga_perceptron():
     POP_SIZE = 20
     genetics = GeneticAlgorithm()
 
-    for i in range(POP_SIZE):
-        genetics.append(GeneticPerceptron(2, 1))
-
     X = np.array([[ 0, 0 ], [0,1], [1, 0], [1, 1] ])
     T_or = np.array([ (x[0] | x[1]) for x in X ])
     T_and = np.array([ (x[0] & x[1]) for x in X ])
     X = np.transpose(X)
+
+    for i in range(POP_SIZE):
+        p = GeneticPerceptron(2, 1)
+        genetics.append(p)
     
     for generation in range(20):
         for p in genetics:
@@ -155,7 +191,8 @@ def test_perceptron():
     
 def runtest():
     # test_ga_perceptron()
-    test_ga_mlp()
-
+    # test_ga_xor()
+    test_ga_gauss()
+    
 if __name__ == "__main__":
     runtest()

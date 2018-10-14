@@ -9,16 +9,41 @@ import matplotlib.pyplot as plt
 
 TOL = 1e-2
 
+def square(x):
+    return 0 + (x > 0)
+
+def softmax(y):
+    normalisers = np.sum(np.exp(y), axis=1) * np.ones((1, np.shape(y)[0]))
+    return np.transpose(np.transpose(np.exp(y) / normalisers))
+
 # Sigmoid
-def activation(x):
+def sigmoid(x):
     return 1 / (1+np.exp(-x))
 
-def activationprim(b):
+def sigmoidprim(b):
     return b * (1-b);
 
-class MLP:
-    def __init__(self, num_in, eta = 0.1, alpha=0.9):
+def tanh(x):
+    ex = np.exp(x)
+    negex = np.exp(-x)
+    return (ex - negex) / (ex + negex)
 
+def tanhprim(g):
+    return 1 - np.power(g, 2)
+
+activations = { 'tanh'    : (tanh, tanhprim),
+                'sigmoid' : (sigmoid, sigmoidprim),
+                'softmax' : (softmax, lambda x: x),
+                'square'  : (square, lambda x: 1),
+                'linear'  : (lambda x: x, lambda x: 1) }
+class MLP:
+    def __init__(self, num_in, eta = 0.1, alpha=0.9, activation="sigmoid", output="sigmoid"):
+
+        self.activation = activations[activation][0]
+        self.activationprim = activations[activation][1]
+
+        self.output = activations[output][0]
+        
         self.num_in = num_in
         self.W = []          # Weights
         self.dW = []         # Delta weights
@@ -30,7 +55,7 @@ class MLP:
         
     def _get_random_weights(self, num_in, num_out):
         # return (np.random.normal(0, 2, num_in + 1))
-        return (np.random.rand(num_in, num_out)-0.5) * 2/np.sqrt(num_in)
+        return (np.random.rand(num_in, num_out) - 0.5) * 10
 
     def add_layer(self, num_out):
         # Initialize W with gaussians
@@ -54,14 +79,14 @@ class MLP:
         layer = 0
         
         while layer < len(self.W)-1:
-            a = activation(a)
+            a = self.activation(a)
             a = self._add1(a)
             layer += 1
             self.a[layer] = a
             
             a = np.dot(a, self.W[layer]);
 
-        return activation(a)
+        return self.output(a)
 
     def recall(self, X):
         y = self._recall(self._add1(X))
@@ -76,11 +101,11 @@ class MLP:
         layer = len(self.W)-1
         
         # Different types of output neurons
-        delta = activationprim(self.y1) * (self.y1 - T)
+        delta = self.activationprim(self.y1) * (self.y1 - T)
 
         while layer > 0:
             self.dW[layer] = self.alpha * self.dW[layer] + np.dot(np.transpose(self.a[layer]), delta)
-            delta = activationprim(self.a[layer]) * np.dot(delta, np.transpose(self.W[layer]))
+            delta = self.activationprim(self.a[layer]) * np.dot(delta, np.transpose(self.W[layer]))
             layer -= 1
 
         self.dW[layer] = self.alpha * self.dW[layer] + np.dot(np.transpose(x1), delta[:,:-1])

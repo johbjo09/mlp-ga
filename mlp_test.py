@@ -13,7 +13,7 @@ def gauss_test():
     Y_train = P_train[1]
     Z_train = np.reshape(np.exp(-(X_train ** 2+ Y_train **2)/10), (-1,1))
 
-    p = mlp.MLP(2, alpha=0.9, eta=0.01)
+    p = mlp.MLP(2, alpha=0.9, eta=0.01, activation="sigmoid")
     p.add_layer(8)
     p.add_layer(1)
     P_train = np.transpose(P_train)
@@ -69,14 +69,14 @@ def logic_test():
     T_or = np.reshape(np.array([ (x[0] | x[1]) for x in X ]), (-1,1))
     T_and = np.reshape(np.array([ (x[0] & x[1]) for x in X ]), (-1,1))
     T_xor = np.reshape(np.array([ (x[0] ^ x[1]) for x in X ]), (-1,1))
-
+    
     or_iterations = or_perceptron.train(X, T_or)
     xor_iterations = xor_perceptron.train(X, T_xor)
-    #and_perceptron.train(X, T_and)
+    and_perceptron.train(X, T_and)
     
     o_or = or_perceptron.recall(X)    
     o_xor = xor_perceptron.recall(X)    
-    # o_and = and_perceptron.recall(X)
+    o_and = and_perceptron.recall(X)
 
     print "Or (" + str(or_iterations) + " iterations)"
     print T_or
@@ -89,8 +89,8 @@ def logic_test():
     #print o_and
 
 def main():
-    # gauss_test()
     logic_test()
+    # gauss_test()
 
 if __name__ == "__main__":
     main()

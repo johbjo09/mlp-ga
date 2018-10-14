@@ -66,7 +66,7 @@ class GeneticAlgorithm():
 
         fitness = [thing.fitness for thing in self.population]
         max_fitness = max(fitness)
-        apex_cutoff = 0.95 * max_fitness
+        apex_cutoff = 0.93 * max_fitness
         
         p_fitness = lambda i: fitness[i]/max_fitness
 
@@ -91,9 +91,9 @@ class GeneticAlgorithm():
                 i_selections.append(i)
 
         for i in i_apex:
-            print "Generation: {}, fit: {}, dist: {:.2f}, rank: {:.2f} (apex)".format(self.generation, fitness[i], distances[i], rankings[i])
-        for i in i_selections:
-            print "Generation: {}, fit: {}, dist: {:.2f}, rank: {:.2f}"  .format(self.generation, fitness[i], distances[i], rankings[i])
+            print "Generation: {}, fit: {:.2f}, dist: {:.2f}, rank: {:.2f} (apex)".format(self.generation, fitness[i], distances[i], rankings[i])
+#        for i in i_selections:
+#            print "Generation: {}, fit: {:.2f}, dist: {:.2f}, rank: {:.2f}"  .format(self.generation, fitness[i], distances[i], rankings[i])
 
         print("Selection: {}".format(time() - timestamp))
         
@@ -105,17 +105,20 @@ class GeneticAlgorithm():
             ancestor1 = deepcopy(self.population[i1])
             ancestor2 = deepcopy(self.population[i2])
 
+            descendant1 = ancestor1.crosswith(ancestor2)
+
             r_mutation1 = (1 - rankings[i1])
             ancestor1.mutate(r_mutation1)
 
             r_mutation2 = (1 - rankings[i2])
             ancestor2.mutate(r_mutation2)
             
-            descendant1 = ancestor1.crosswith(ancestor2)
-
+            descendant2 = ancestor1.crosswith(ancestor2)
+            
             next_generation.append(ancestor1)
             next_generation.append(ancestor2)
             next_generation.append(descendant1)
+            next_generation.append(descendant2)
 
         self.population = next_generation
         self.generation += 1
