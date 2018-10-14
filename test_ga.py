@@ -96,7 +96,7 @@ def test_ga_mlp():
         return p
 
     X = np.array([ [0,0], [0,1], [1,0], [1,1] ])
-    T_xor = np.array([ (x[0] ^ x[1]) for x in X ])
+    T_xor = np.reshape(np.array([ (x[0] ^ x[1]) for x in X ]), (-1,1))
     
     for i in range(POP_SIZE):
         p = make_genetic_mlp()

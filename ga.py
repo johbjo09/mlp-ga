@@ -77,8 +77,8 @@ class GeneticAlgorithm():
         
         i_selections = filter(lambda i: fitness[i] > apex_cutoff, range(len(self.population)))
         
-        decendants = int(self.p_decendants * len(self.population))
-        while decendants > 0:
+        descendants = int(self.p_decendants * len(self.population))
+        while descendants > 0:
             i = random.randint(0,len(self.population)-1) # range(len(self.population)):
 
             # The probability that an individual should be in the next population
@@ -87,7 +87,7 @@ class GeneticAlgorithm():
             if np.random.rand() < p_selection:
                 print "Generation: {}, p_selection: {:.2f}, fitness: {}, distance: {:.2f}".format(self.generation, p_selection, fitness[i], distances[i])
                 i_selections.append(i)
-                decendants -= 1
+                descendants -= 1
 
         print("Selection: {}".format(time() - timestamp))
 
@@ -105,12 +105,12 @@ class GeneticAlgorithm():
             r_mutation2 = (1 - rankings[i2])
             ancestor2.mutate(r_mutation2)
             
-            decendant = ancestor1.crosswith(ancestor2)
-            decendant.mutate(r_mutation1 * r_mutation2)
+            descendant = ancestor1.crosswith(ancestor2)
+            descendant.mutate(r_mutation1 * r_mutation2)
 
             next_generation.append(ancestor1)
             next_generation.append(ancestor2)
-            next_generation.append(decendant)
+            next_generation.append(descendant)
 
         self.population = next_generation
         self.generation += 1
