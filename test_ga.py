@@ -1,12 +1,17 @@
 
+import threading
 import numpy as np
 import random
 from copy import deepcopy
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import axes3d
+from matplotlib.animation import FuncAnimation
+
 from ga import GeneticThing, GeneticAlgorithm
 from perceptron import Perceptron
 from mlp import MLP
 
-# Multi-layer perceptron
+# Genetic multi-layer perceptron
 
 class GeneticMLP(GeneticThing, MLP):
 
@@ -102,6 +107,38 @@ class GeneticPerceptron(GeneticThing, Perceptron):
 def fitness(T, y):
     return 1.0 / (np.sum(np.power(T - y, 2) + 0.01))
 
+class MonitorGraph():
+    def __init__(self, ax, X_test, Y_test, Z_recall):
+        self.ax = ax
+        self.generation = 0
+        self.X_test = X_test
+        self.Y_test = Y_test
+        self.Z_recall = Z_recall
+
+        GRID_POINTS = 100
+        # Surface grid
+        g = np.linspace(-6, 6, GRID_POINTS)
+        self.G_X = np.array( [ g for i in range(0,GRID_POINTS) ])
+        self.G_Y = np.array( [ i*np.ones(GRID_POINTS) for i in g ])
+        self.G_Z = np.exp(-(self.G_Y ** 2+ self.G_X **2)/10)
+
+        # wireframe = ax.plot_wireframe(self.G_X, self.G_Y, self.G_Z, rstride=5, cstride=5, color="#aa7777")
+        # self.scatter = self.ax.scatter(self.X_test, self.Y_test, self.Z_recall, color="#00ff00")
+
+    def update(self, frame):
+        self.scatter = self.ax.scatter(self.X_test, self.Y_test, self.Z_recall, color="#00ff00")
+        self.ax.clear()
+        self.ax.set_title('Evolving NN, gen: ' + str(self.generation))
+        self.wireframe = self.ax.plot_wireframe(self.G_X, self.G_Y, self.G_Z, rstride=5, cstride=5, color="#aa7777")
+        self.wireframe.set_alpha(0.3)
+        self.scatter = self.ax.scatter(self.X_test, self.Y_test, self.Z_recall, color="#00ff00")
+
+        # self.scatter.set_data(self.X_test, self.Y_test, self.Z_recall)
+        # self.scatter.set_data(self.X_test, self.Y_test, self.Z_recall)
+        # data = np.hstack((x[:i,np.newaxis], y[:i, np.newaxis]))
+        # scat.set_offsets(data)
+
+
 def test_ga_gauss():
     POP_SIZE = 40
     genetics = GeneticAlgorithm()
@@ -113,17 +150,39 @@ def test_ga_gauss():
     Z_test = np.reshape(np.exp(-(X_test ** 2+ Y_test **2)/10), (-1,1))
     P_test = np.transpose(P_test)
 
+    Z_recall = deepcopy(Z_test)
+    
     for i in range(POP_SIZE):
-        p = GeneticMLP(2, r_mutation=0.3, activation="sigmoid")
-        p.add_layer(6)
+        p = GeneticMLP(2, r_mutation=0.5, severity=10, activation="tanh")
+        p.add_layer(5)
         p.add_layer(1)
+        #if i % 5 == 0:
+        #   p.train(P_test, Z_test)
         genetics.append(p)
 
-    for generation in range(10000):
-        for p in genetics:
-            y = p.recall(P_test)
-            p.set_fitness(fitness(Z_test, y))
-        genetics.evolve()
+    fig = plt.figure()
+    ax = axes3d.Axes3D(fig)
+    monitor = MonitorGraph(ax, X_test, Y_test, Z_recall)
+
+    def evolve():
+        for generation in range(1000):
+            max_fit = 0
+            for p in genetics:
+                y = p.recall(P_test)
+                fit = fitness(Z_test, y)
+                p.set_fitness(fit)
+                if fit > max_fit:
+                    max_fit = fit
+                    monitor.Z_recall = y
+                    monitor.generation = generation
+            genetics.evolve()
+
+    thread = threading.Thread(target = evolve)
+    thread.start()
+    
+    anim = FuncAnimation(fig, monitor.update, interval=1000)
+    plt.show()
+
 
 def test_ga_xor():
     POP_SIZE = 50
@@ -133,11 +192,11 @@ def test_ga_xor():
     T_xor = np.reshape(np.array([ (x[0] ^ x[1]) for x in X ]), (-1,1))
     
     for i in range(POP_SIZE):
-        p = GeneticMLP(2)
+        p = GeneticMLP(2, r_mutation=0.5, severity=10)
         p.add_layer(2)
         p.add_layer(1)
-        if i % 2 == 0:
-            p.train(X, T_xor, epochs=1000)
+        # if i % 2 == 0:
+        # p.train(X, T_xor, epochs=1000)
         genetics.append(p)
     
     for generation in range(10000):

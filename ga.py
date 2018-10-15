@@ -66,17 +66,23 @@ class GeneticAlgorithm():
 
         fitness = [thing.fitness for thing in self.population]
         max_fitness = max(fitness)
-        apex_cutoff = 0.93 * max_fitness
+        apex_cutoff = 0.90 * max_fitness
         
         p_fitness = lambda i: fitness[i]/max_fitness
 
         # Rank function
-        f_rank = lambda i: p_fitness(i)* 0.6 +  0.4 * p_distance(i)
+        f_rank = lambda i: p_fitness(i)* 0.5 + 0.5 * p_distance(i)
 
         rankings = [ f_rank(i) for i in range(len(self.population)) ]
         
         i_apex = filter(lambda i: fitness[i] > apex_cutoff, range(len(self.population)))
         i_selections = []
+
+        l2 = int(0.25 * len(self.population))
+        if len(i_apex) > l2:
+            i_apex = i_apex[0:l2]
+
+        i_selections += i_apex
         
         descendants = int(self.p_descendants * len(self.population))
         while len(i_selections) <= descendants:
