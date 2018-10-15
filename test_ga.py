@@ -143,7 +143,7 @@ def test_ga_gauss():
     POP_SIZE = 40
     genetics = GeneticAlgorithm()
 
-    P_test = np.array([ (12 * np.random.rand(1, 2)[0] - 6) for i in range(0,100) ])
+    P_test = np.array([ (12 * np.random.rand(1, 2)[0] - 6) for i in range(0,500) ])
     P_test = np.transpose(P_test)
     X_test = P_test[0]
     Y_test = P_test[1]
@@ -153,11 +153,11 @@ def test_ga_gauss():
     Z_recall = deepcopy(Z_test)
     
     for i in range(POP_SIZE):
-        p = GeneticMLP(2, r_mutation=0.5, severity=10, activation="tanh")
+        p = GeneticMLP(2, r_mutation=0.5, severity=10, activation="sigmoid")
         p.add_layer(5)
         p.add_layer(1)
-        #if i % 5 == 0:
-        #   p.train(P_test, Z_test)
+        # if i % 5 == 0:
+        #    p.train(P_test, Z_test)
         genetics.append(p)
 
     fig = plt.figure()
@@ -180,7 +180,7 @@ def test_ga_gauss():
     thread = threading.Thread(target = evolve)
     thread.start()
     
-    anim = FuncAnimation(fig, monitor.update, interval=1000)
+    anim = FuncAnimation(fig, monitor.update, interval=500)
     plt.show()
 
 

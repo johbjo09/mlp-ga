@@ -106,9 +106,10 @@ class MLP:
         while layer > 0:
             self.dW[layer] = self.alpha * self.dW[layer] + np.dot(np.transpose(self.a[layer]), delta)
             delta = self.activationprim(self.a[layer]) * np.dot(delta, np.transpose(self.W[layer]))
+            delta = delta[:,:-1]
             layer -= 1
 
-        self.dW[layer] = self.alpha * self.dW[layer] + np.dot(np.transpose(x1), delta[:,:-1])
+        self.dW[layer] = self.alpha * self.dW[layer] + np.dot(np.transpose(x1), delta)
 
         layer = len(self.W)
         while layer > 0:

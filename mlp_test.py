@@ -15,6 +15,7 @@ def gauss_test():
 
     p = mlp.MLP(2, alpha=0.9, eta=0.01, activation="sigmoid")
     p.add_layer(8)
+    p.add_layer(4)
     p.add_layer(1)
     P_train = np.transpose(P_train)
 
@@ -22,7 +23,7 @@ def gauss_test():
 
     print "iterations: " + str(iterations)
     
-    P_test = np.array([ (12 * np.random.rand(1, 2)[0] - 6) for i in range(0,200) ])
+    P_test = np.array([ (24 * np.random.rand(1, 2)[0] - 12) for i in range(0,200) ])
     P_test = np.transpose(P_test)
     X_test = P_test[0]
     Y_test = P_test[1]
@@ -53,6 +54,7 @@ def gauss_test():
 def logic_test():
     or_perceptron = mlp.MLP(2, alpha=0.9, eta=0.01)
     or_perceptron.add_layer(2)
+    or_perceptron.add_layer(2)
     or_perceptron.add_layer(1)
 
     and_perceptron = mlp.MLP(2, alpha=0.9, eta=0.01)
@@ -60,6 +62,7 @@ def logic_test():
     and_perceptron.add_layer(1)
 
     xor_perceptron = mlp.MLP(2, alpha=0.9, eta=0.05)
+    xor_perceptron.add_layer(2)
     xor_perceptron.add_layer(2)
     xor_perceptron.add_layer(1)
 
@@ -89,8 +92,8 @@ def logic_test():
     #print o_and
 
 def main():
-    logic_test()
-    # gauss_test()
+    #logic_test()
+    gauss_test()
 
 if __name__ == "__main__":
     main()
