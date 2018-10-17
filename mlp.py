@@ -4,9 +4,6 @@ import numpy as np
 import sys
 import pdb
 
-from mpl_toolkits.mplot3d import axes3d
-import matplotlib.pyplot as plt
-
 TOL = 1e-2
 
 def square(x):

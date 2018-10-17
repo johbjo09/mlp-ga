@@ -23,7 +23,7 @@ def gauss_test():
 
     print "iterations: " + str(iterations)
     
-    P_test = np.array([ (24 * np.random.rand(1, 2)[0] - 12) for i in range(0,200) ])
+    P_test = np.array([ (12 * np.random.rand(1, 2)[0] - 6) for i in range(0,200) ])
     P_test = np.transpose(P_test)
     X_test = P_test[0]
     Y_test = P_test[1]
@@ -31,7 +31,7 @@ def gauss_test():
     P_test = np.transpose(P_test)
 
     Z_recall = p.recall(P_test)
-    
+
     GRID_POINTS = 100
     
     # Surface grid

@@ -52,6 +52,9 @@ class GeneticAlgorithm():
 
     def evolve(self):
         timestamp = time()
+
+        for p in self.population:
+            p.is_apex = False
         
         # Distance to mean individual is measure of "distance"
         mean = deepcopy(self.population[0])
@@ -66,7 +69,7 @@ class GeneticAlgorithm():
 
         fitness = [thing.fitness for thing in self.population]
         max_fitness = max(fitness)
-        apex_cutoff = 0.90 * max_fitness
+        apex_cutoff = 0.9 * max_fitness
         
         p_fitness = lambda i: fitness[i]/max_fitness
 
@@ -98,6 +101,7 @@ class GeneticAlgorithm():
 
         for i in i_apex:
             print "Generation: {}, fit: {:.2f}, dist: {:.2f}, rank: {:.2f} (apex)".format(self.generation, fitness[i], distances[i], rankings[i])
+            self.population[i].is_apex = True
 #        for i in i_selections:
 #            print "Generation: {}, fit: {:.2f}, dist: {:.2f}, rank: {:.2f}"  .format(self.generation, fitness[i], distances[i], rankings[i])
 
